@@ -1,0 +1,77 @@
+name: Auto-Documentation
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+
+jobs:
+  sync-notion:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Sync from Notion
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          AGENT_REGISTRY_ID: 4f83c29038c74710a9e2b56bd1c35c3c
+          ARCHITECTURE_CATALOG_ID: ce55a73f69e34d3a965f70014468af28
+        run: |
+          node scripts/sync-notion.js
+      
+      - name: Generate agent docs
+        run: |
+          node scripts/generate-agent-docs.js
+      
+      - name: Update README badges
+        run: |
+          node scripts/update-badges.js
+      
+      - name: Commit changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git diff --quiet && git diff --staged --quiet || git commit -m "📚 Auto-update documentation from Notion"
+          git push
+
+  validate-contracts:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Validate agent contracts
+        run: |
+          node scripts/validate-contracts.js
+      
+      - name: Check architecture dependencies
+        run: |
+          node scripts/check-dependencies.js
+
+  deploy-docs:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Build documentation site
+        run: |
+          npm run docs:build
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/.vitepress/dist
