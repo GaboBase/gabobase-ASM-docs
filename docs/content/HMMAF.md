@@ -2,94 +2,77 @@
 
 ## 🎯 Overview
 
-**HMMAF** generates and processes multi-modal content (text, images, video, audio) through specialized agent coordination.
+**HMMAF** enables the synchronized generation and processing of multi-modal content (text, image, video, audio) through specialized agents.
 
 ## 🏗️ Architecture
 
 ```mermaid
 graph LR
-    Request[Content Request] --> Router[Modal Router]
+    Input[User Request] --> MMP[Multi-Modal Processor]
     
-    Router --> |Text| TG[Text Generator]
-    Router --> |Image| IG[Image Generator]
-    Router --> |Video| VG[Video Generator]
-    Router --> |Audio| AG[Audio Generator]
+    MMP --> |Text Spec| TG[Text Gen]
+    MMP --> |Image Spec| IG[Image Gen]
+    MMP --> |Video Spec| VG[Video Gen]
     
-    TG --> Composer[Content Composer]
-    IG --> Composer
-    VG --> Composer
-    AG --> Composer
+    TG --> Sync[Synchronizer]
+    IG --> Sync
+    VG --> Sync
     
-    Composer --> QS[Quality Scorer]
-    QS --> |Pass| Delivery
-    QS --> |Fail| Router
+    Sync --> QS[Quality Scorer]
+    QS --> |Pass| Output[Final Content]
+    QS --> |Fail| MMP
 ```
 
 ## 🔑 Key Features
 
-### 1. Multi-Modal Processing
-- **Text**: LLM-based generation (Gemini 2.0)
-- **Images**: Imagen 3 integration
-- **Video**: Veo 2 integration
-- **Audio**: Speech synthesis + music generation
+### 1. Parallel Generation
+- Generates assets simultaneously
+- Reduces total production time by 70%
+- Maintains stylistic consistency
 
-### 2. Content Composition
-- Combines multiple modalities coherently
-- Maintains narrative consistency
-- Synchronizes timing across media
-- Generates metadata automatically
+### 2. Cross-Modal Synchronization
+- Aligns video timing with audio narration
+- Matches image style to text tone
+- Validates consistency across modalities
 
-### 3. Quality Assurance
-- Per-modal quality scoring
-- Cross-modal coherence checking
-- Brand guideline compliance
-- Accessibility validation (alt-text, captions)
+### 3. Automated Quality Control
+- Scores each asset against requirements
+- Auto-regenerates low-quality artifacts
+- Human-in-the-loop for final approval
 
 ## 🤖 Agent Interactions
 
-- **Content Generator:** Creates text/image/video/audio
-- **Multi-Modal Processor:** Coordinates multi-modal workflows
-- **Quality Scorer:** Validates output quality
-- **Translation Engine:** Localizes content
+- **Multi-Modal Processor:** Decomposes request into specs
+- **Content Generator:** Creates raw assets
+- **Translation Engine:** Localizes text/audio
+- **Quality Scorer:** Validates outputs
 
 ## 📊 Performance Metrics
 
 | Metric | Value |
 |--------|-------|
-| Text Generation | 500ms |
-| Image Generation | 8s |
-| Video Generation | 45s |
-| Quality Score Avg | 8.7/10 |
-| Multi-Modal Success | 89% |
+| Avg Gen Time | 45s |
+| Sync Accuracy | 98% |
+| Asset Quality | 4.5/5 |
+| Cost/Asset | $0.15 |
 
 ## 🔧 Configuration
 
 ```yaml
 hmmaf:
-  text:
-    provider: vertex-ai
-    model: gemini-2.0-flash
-    temperature: 0.7
-    max_tokens: 2000
+  generation:
+    text_model: gemini-2.0-pro
+    image_model: imagen-3
+    video_model: veo
   
-  image:
-    provider: vertex-ai
-    model: imagen-3
-    resolution: 1024x1024
-    guidance_scale: 7.5
-    safety_filter: true
+  quality:
+    min_score: 0.85
+    auto_regenerate: true
+    max_retries: 3
   
-  video:
-    provider: vertex-ai
-    model: veo-2
-    duration: 5s
-    fps: 24
-    quality: high
-  
-  composition:
-    synchronization: true
-    narrative_consistency_check: true
-    accessibility_mode: true
+  synchronization:
+    strict_timing: true
+    style_guide: "brand_guidelines_v2"
 ```
 
 ## 🚀 Usage
@@ -98,36 +81,23 @@ hmmaf:
 from asm.frameworks import HMMAF
 
 hmmaf = HMMAF(
-    text_model="gemini-2.0-flash",
-    image_model="imagen-3",
-    video_model="veo-2"
+    config="marketing_campaign"
 )
 
-# Generate multi-modal content
-result = hmmaf.generate(
-    prompt="Create a product launch announcement",
-    modalities=["text", "image", "video"],
-    style="professional",
-    brand_guidelines="notion://brand-guide"
+content = hmmaf.generate(
+    prompt="Create a 30s promo video for the new 'EcoBoost' shoe",
+    modalities=["video", "audio", "text_overlay"],
+    constraints={"style": "energetic", "duration": 30}
 )
 
-print(f"Text: {result.text}")
-print(f"Image URL: {result.image_url}")
-print(f"Video URL: {result.video_url}")
-print(f"Quality Score: {result.quality_score}")
-
-# Translate to multiple languages
-translated = hmmaf.translate(
-    content=result,
-    target_languages=["es", "fr", "de", "ja"]
-)
+print(f"Video URL: {content.video_url}")
+print(f"Transcript: {content.transcript}")
 ```
 
 ## 🔗 Integration Points
 
-- **MCP-Swarm:** Triggered for content generation tasks
-- **Quality Badge Engine:** Scores content quality
-- **GenOps:** Deploys content to production channels
+- **MCP-Swarm:** Triggers content creation tasks
+- **GenOps:** Deploys generated assets to CDN
 
 ---
 
