@@ -32,16 +32,16 @@ Complete documentation and infrastructure for the Agent Swarm Matrix ecosystem -
 
 ### Architecture Frameworks
 
-| Framework | Purpose | Status |
-|-----------|---------|--------|
-| [EC-RAG](docs/ai-ml/EC-RAG.md) | Embeddings + Context Retrieval | 🟢 Active |
-| [MCP-Swarm](docs/orchestration/MCP-SWARM.md) | Multi-agent coordination | 🟢 Active |
-| [RCOP](docs/ai-ml/RCOP.md) | Recursive reasoning | 🟢 Active |
-| [FLSIN](docs/cognitive/FLSIN.md) | Federated learning | 🟡 Alpha |
-| [HMMAF](docs/content/HMMAF.md) | Multi-modal content | 🟡 Beta |
-| [MetaReasoner](docs/cognitive/META-REASONER.md) | Strategic optimization | 🟢 Active |
-| [GenOps](docs/operational/GEN-OPS.md) | Deployment automation | 🟢 Active |
-| [DCE](docs/operational/DCE.md) | Dynamic context | 🟡 Beta |
+| Framework | Purpose | Status | Path |
+|-----------|---------|--------|------|
+| [EC-RAG](docs/ai-ml/EC-RAG.md) | Embeddings + Context Retrieval | 🟢 Active | `docs/ai-ml/` |
+| [MCP-Swarm](docs/orchestration/MCP-SWARM.md) | Multi-agent coordination | 🟢 Active | `docs/orchestration/` |
+| [RCOP](docs/ai-ml/RCOP.md) | Recursive reasoning | 🟢 Active | `docs/ai-ml/` |
+| [FLSIN](docs/learning/FLSIN.md) | Federated learning | 🟡 Alpha | `docs/learning/` |
+| [HMMAF](docs/content/HMMAF.md) | Multi-modal content | 🟡 Beta | `docs/content/` |
+| [MetaReasoner](docs/cognitive/META-REASONER.md) | Strategic optimization | 🟢 Active | `docs/cognitive/` |
+| [GenOps](docs/operational/GEN-OPS.md) | Deployment automation | 🟢 Active | `docs/operational/` |
+| [DCE](docs/execution/DCE.md) | Dynamic context | 🟡 Beta | `docs/execution/` |
 
 ### Core Agents
 
@@ -132,13 +132,13 @@ asm-docs/
 │   └── workflows/          # CI/CD pipelines
 ├── agents/                 # Agent definitions
 ├── config/                 # Configuration files
-│   ├── grafana-dashboard.json
-│   └── prometheus-rules.yml
 ├── docs/                   # Documentation
 │   ├── ai-ml/
 │   ├── architecture/
 │   ├── cognitive/
 │   ├── content/
+│   ├── execution/          # DCE
+│   ├── learning/           # FLSIN
 │   ├── operational/
 │   ├── orchestration/
 │   └── setup/
