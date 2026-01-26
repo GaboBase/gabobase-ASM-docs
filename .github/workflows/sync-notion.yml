@@ -1,0 +1,60 @@
+name: Sync with Notion
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'  # Every 15 minutes
+  repository_dispatch:
+    types: [notion-webhook]
+  workflow_dispatch:
+
+jobs:
+  sync-to-github:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: |
+          npm install @notionhq/client js-yaml
+          
+      - name: Fetch from Notion
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          AGENT_REGISTRY_ID: ${{ secrets.AGENT_REGISTRY_DB_ID }}
+          ARCHITECTURE_CATALOG_ID: ${{ secrets.ARCHITECTURE_CATALOG_DB_ID }}
+        run: |
+          node scripts/sync-notion-to-github.js
+          
+      - name: Detect changes
+        id: changes
+        run: |
+          if [[ -n $(git status -s) ]]; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Commit and push changes
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "Notion Sync Bot"
+          git config user.email "bot@gabobase.dev"
+          git add .
+          git commit -m "🔄 Sync from Notion [skip ci]"
+          git push
+          
+      - name: Create summary
+        run: |
+          echo "## 🔄 Notion Sync Completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Changes detected:** ${{ steps.changes.outputs.has_changes }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY

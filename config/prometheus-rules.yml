@@ -1,0 +1,83 @@
+groups:
+  - name: asm_agents
+    interval: 30s
+    rules:
+      - alert: AgentDown
+        expr: up{job="asm-agent"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Agent {{ $labels.agent_id }} is down"
+          description: "Agent {{ $labels.agent_id }} has been down for more than 2 minutes."
+          
+      - alert: HighErrorRate
+        expr: rate(agent_errors_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High error rate on {{ $labels.agent_id }}"
+          description: "Agent {{ $labels.agent_id }} error rate is {{ $value | humanizePercentage }}."
+          
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(agent_execution_latency_milliseconds_bucket[5m])) > 1000
+        for: 10m
+        labels:
+          severity: warning
+          team: performance
+        annotations:
+          summary: "High latency on {{ $labels.agent_id }}"
+          description: "Agent {{ $labels.agent_id }} P95 latency is {{ $value }}ms."
+          
+      - alert: LowSuccessRate
+        expr: rate(agent_execution_success_total[10m]) / rate(agent_execution_total[10m]) < 0.85
+        for: 15m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Low success rate on {{ $labels.agent_id }}"
+          description: "Agent {{ $labels.agent_id }} success rate is {{ $value | humanizePercentage }}."
+          
+      - alert: QualityBadgeDeficiente
+        expr: increase(quality_badge_count{badge="deficiente"}[1h]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: quality
+        annotations:
+          summary: "High deficient quality badges"
+          description: "{{ $value }} deficient quality badges in the last hour."
+          
+      - alert: SyncFailed
+        expr: time() - sync_last_success_timestamp > 1800
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "Notion-GitHub sync failed"
+          description: "Last successful sync was {{ $value | humanizeDuration }} ago."
+          
+      - alert: SwarmExecutorCongestion
+        expr: swarm_executor_concurrent_tasks >= swarm_executor_max_concurrent
+        for: 5m
+        labels:
+          severity: warning
+          team: performance
+        annotations:
+          summary: "Swarm executor at max capacity"
+          description: "Swarm executor is at {{ $value }} concurrent tasks."
+          
+      - alert: ContractValidationFailing
+        expr: rate(contract_validation_failure_total[1h]) > 0.2
+        for: 10m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "Contract validation failures detected"
+          description: "{{ $value | humanizePercentage }} of contracts failing validation."

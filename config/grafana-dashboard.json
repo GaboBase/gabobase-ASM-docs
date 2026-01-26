@@ -1,0 +1,217 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "asm-ecosystem",
+    "title": "ASM Ecosystem - Real-time Monitoring",
+    "tags": ["asm", "agents", "orchestration"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "10s",
+    
+    "panels": [
+      {
+        "id": 1,
+        "title": "Agent Health Status",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
+        "targets": [{
+          "expr": "sum(agent_health_status{status=\"active\"}) by (agent_id)",
+          "legendFormat": "{{agent_id}}"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 0.7, "color": "yellow"},
+                {"value": 0.9, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      
+      {
+        "id": 2,
+        "title": "Execution Success Rate",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 9, "x": 6, "y": 0},
+        "targets": [{
+          "expr": "rate(agent_execution_success_total[5m]) / rate(agent_execution_total[5m])",
+          "legendFormat": "{{agent_id}}"
+        }],
+        "options": {
+          "legend": {"displayMode": "table", "placement": "right"}
+        }
+      },
+      
+      {
+        "id": 3,
+        "title": "Quality Badge Distribution",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 9, "x": 15, "y": 0},
+        "targets": [{
+          "expr": "sum(quality_badge_count) by (badge)",
+          "legendFormat": "{{badge}}"
+        }]
+      },
+      
+      {
+        "id": 4,
+        "title": "Average Latency by Agent",
+        "type": "bargauge",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "targets": [{
+          "expr": "avg(agent_execution_latency_milliseconds) by (agent_id)",
+          "legendFormat": "{{agent_id}}"
+        }],
+        "options": {
+          "orientation": "horizontal",
+          "displayMode": "gradient"
+        }
+      },
+      
+      {
+        "id": 5,
+        "title": "Swarm Executor Concurrency",
+        "type": "graph",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "targets": [{
+          "expr": "swarm_executor_concurrent_tasks",
+          "legendFormat": "Active Tasks"
+        }]
+      },
+      
+      {
+        "id": 6,
+        "title": "Error Rate by Category",
+        "type": "heatmap",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "targets": [{
+          "expr": "rate(agent_errors_total[5m]) by (agent_id, error_type)"
+        }]
+      },
+      
+      {
+        "id": 7,
+        "title": "Architecture Utilization",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "targets": [{
+          "expr": "count(agent_architecture_dependency) by (architecture)",
+          "legendFormat": "{{architecture}}"
+        }]
+      },
+      
+      {
+        "id": 8,
+        "title": "Top 10 Slowest Executions",
+        "type": "table",
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 24},
+        "targets": [{
+          "expr": "topk(10, agent_execution_latency_milliseconds)",
+          "format": "table",
+          "instant": true
+        }],
+        "transformations": [{
+          "id": "organize",
+          "options": {
+            "excludeByName": {},
+            "indexByName": {
+              "agent_id": 0,
+              "execution_id": 1,
+              "Value": 2
+            }
+          }
+        }]
+      },
+      
+      {
+        "id": 9,
+        "title": "Notion-GitHub Sync Status",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 32},
+        "targets": [{
+          "expr": "sync_last_success_timestamp",
+          "legendFormat": "Last Sync"
+        }],
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none"
+        }
+      },
+      
+      {
+        "id": 10,
+        "title": "Active Webhooks",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 32},
+        "targets": [{
+          "expr": "count(webhook_active)",
+          "legendFormat": "Active Webhooks"
+        }]
+      },
+      
+      {
+        "id": 11,
+        "title": "CI/CD Pipeline Status",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 32},
+        "targets": [{
+          "expr": "github_workflow_run_status{workflow=\"deploy-agents\"}",
+          "legendFormat": "Deploy Status"
+        }]
+      },
+      
+      {
+        "id": 12,
+        "title": "Contract Validation Rate",
+        "type": "stat",
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 32},
+        "targets": [{
+          "expr": "rate(contract_validation_success_total[1h]) / rate(contract_validation_total[1h])",
+          "legendFormat": "Validation Rate"
+        }],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit"
+          }
+        }
+      }
+    ],
+    
+    "templating": {
+      "list": [
+        {
+          "name": "agent",
+          "type": "query",
+          "query": "label_values(agent_health_status, agent_id)",
+          "multi": true,
+          "includeAll": true
+        },
+        {
+          "name": "environment",
+          "type": "custom",
+          "options": [
+            {"text": "Staging", "value": "staging"},
+            {"text": "Production", "value": "production"}
+          ]
+        }
+      ]
+    },
+    
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "Prometheus",
+          "expr": "deployment_timestamp",
+          "tagKeys": "agent_id,version"
+        }
+      ]
+    }
+  }
+}
