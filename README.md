@@ -1,319 +1,212 @@
-# 🧠 Agent Swarm Matrix (ASM)
+# 🤖 Agent Swarm Matrix (ASM) - Complete Ecosystem
 
-[![Notion Agent Registry](https://img.shields.io/badge/Notion-Agent_Registry-000000?style=for-the-badge&logo=notion&logoColor=white)](https://www.notion.so/4f83c29038c74710a9e2b56bd1c35c3c)
-[![Architecture Catalog](https://img.shields.io/badge/Notion-Architecture_Catalog-000000?style=for-the-badge&logo=notion&logoColor=white)](https://www.notion.so/ce55a73f69e34d3a965f70014468af28)
-[![Massive Execution Matrix](https://img.shields.io/badge/Notion-Execution_Matrix-000000?style=for-the-badge&logo=notion&logoColor=white)](https://www.notion.so/2ea75015623781488401c14ded93b1ff)
+[![CI/CD](https://github.com/GaboBase/gabobase-ASM-docs/actions/workflows/deploy-agents.yml/badge.svg)](https://github.com/GaboBase/gabobase-ASM-docs/actions/workflows/deploy-agents.yml)
+[![Contract Validation](https://github.com/GaboBase/gabobase-ASM-docs/actions/workflows/validate-contracts.yml/badge.svg)](https://github.com/GaboBase/gabobase-ASM-docs/actions/workflows/validate-contracts.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Notion Sync](https://img.shields.io/badge/Notion-Synced-blue)](https://notion.so)
 
-> **Consolidated documentation hub for massive multi-agent orchestration framework**  
-> Integrates PrompTitecture architectures, MCP-Swarm orchestration, Notion-driven knowledge base, contract-based autonomy, and production-grade tools registry.
-
----
+Complete documentation and infrastructure for the Agent Swarm Matrix ecosystem - an intelligent multi-agent orchestration system with 60+ specialized agents and 8 architecture frameworks.
 
 ## 🎯 Overview
 
-**Agent Swarm Matrix (ASM)** is a comprehensive multi-agent ecosystem that combines cognitive architectures, execution frameworks, and autonomous coordination patterns to deliver production-grade AI solutions.
+**ASM** is a production-ready agent orchestration platform that intelligently routes tasks across specialized agents using advanced pattern matching, multi-site execution, and quality-driven learning.
 
 ### Key Features
-- **52+ Specialized Agents** with contract-based autonomy
-- **8 Core Architectures** (EC-RAG, MCP-Swarm, RCOP, FLSIN, HMMAF, MetaReasoner, GenOps, DCE)
-- **4-Level Autonomy Hierarchy** (Supervised → Self-Improving)
-- **MCP Protocol Integration** for knowledge access
-- **Notion-GitHub Sync** for live documentation
-- **Blockchain Anchoring** for trust & auditability
 
----
+✅ **60+ Specialized Agents** with contract-driven execution  
+✅ **8 Architecture Frameworks** (EC-RAG, MCP-Swarm, RCOP, FLSIN, HMMAF, MetaReasoner, GenOps, DCE)  
+✅ **Notion↔GitHub Bidirectional Sync** with webhooks  
+✅ **CI/CD Pipelines** with automated validation and deployment  
+✅ **Real-time Monitoring** with Grafana dashboards  
+✅ **Quality Badge System** (Ottimo/Buena/Deficiente)  
+✅ **Multi-Step & Conditional Triggers** for complex workflows  
+✅ **Self-Improving** with FLSIN federated learning  
 
-## 🏗️ Architecture Overview
+## 📚 Documentation
 
-```mermaid
-graph TB
-    subgraph "Meta-Coordination Layer"
-        MR[MetaReasoner]
-    end
-    
-    subgraph "Cognitive Frameworks"
-        RCOP[RCOP - Reasoning]
-        FLSIN[FLSIN - Learning]
-    end
-    
-    subgraph "Orchestration Layer"
-        MCP[MCP-Swarm]
-        SSO[Smart Shortcut Orchestrator]
-    end
-    
-    subgraph "Knowledge Systems"
-        ECRAG[EC-RAG]
-        VDB[(Vector DB)]
-    end
-    
-    subgraph "Execution Layer"
-        GenOps[GenOps]
-        DCE[DCE]
-        HMMAF[HMMAF]
-    end
-    
-    subgraph "Agent Registry"
-        A1[Agent 1..52]
-    end
-    
-    MR --> RCOP
-    MR --> MCP
-    RCOP --> SSO
-    FLSIN --> ECRAG
-    MCP --> SSO
-    SSO --> GenOps
-    SSO --> DCE
-    SSO --> HMMAF
-    ECRAG --> VDB
-    GenOps --> A1
-    DCE --> A1
-    HMMAF --> A1
-```
+### Quick Start
 
----
+- [Getting Started](docs/setup/GETTING-STARTED.md)
+- [Deployment Guide](docs/setup/DEPLOYMENT.md)
+- [Architecture Overview](docs/architecture/SYSTEM-DIAGRAM.md)
 
-## 📚 Core Frameworks
+### Architecture Frameworks
 
-| Framework | Type | Maturity | Description | Docs |
-|-----------|------|----------|-------------|------|
-| **[EC-RAG](./docs/core-frameworks/EC-RAG.md)** | Knowledge System | Production | Evolution-aware RAG with drift detection | [📖](./docs/core-frameworks/EC-RAG.md) |
-| **[MCP-Swarm](./docs/core-frameworks/MCP-Swarm.md)** | Orchestration | Production | Model Context Protocol orchestrator | [📖](./docs/core-frameworks/MCP-Swarm.md) |
-| **[RCOP](./docs/cognitive/RCOP.md)** | Cognitive | Beta | Recursive Chain of Prompts reasoning | [📖](./docs/cognitive/RCOP.md) |
-| **[FLSIN](./docs/cognitive/FLSIN.md)** | Learning | Alpha | Federated Learning with selective integration | [📖](./docs/cognitive/FLSIN.md) |
-| **[HMMAF](./docs/operational/HMMAF.md)** | Content | Beta | Hybrid Multi-Modal Agentic Framework | [📖](./docs/operational/HMMAF.md) |
-| **[MetaReasoner](./docs/cognitive/MetaReasoner.md)** | Meta-Coordination | Alpha | Meta-level agent selection optimizer | [📖](./docs/cognitive/MetaReasoner.md) |
-| **[GenOps](./docs/operational/GenOps.md)** | Operations | Beta | Generative Operations automation | [📖](./docs/operational/GenOps.md) |
-| **[DCE](./docs/operational/DCE.md)** | Execution | Beta | Dynamic Context Expansion | [📖](./docs/operational/DCE.md) |
+| Framework | Purpose | Status |
+|-----------|---------|--------|
+| [EC-RAG](docs/ai-ml/EC-RAG.md) | Embeddings + Context Retrieval | 🟢 Active |
+| [MCP-Swarm](docs/orchestration/MCP-SWARM.md) | Multi-agent coordination | 🟢 Active |
+| [RCOP](docs/ai-ml/RCOP.md) | Recursive reasoning | 🟢 Active |
+| [FLSIN](docs/cognitive/FLSIN.md) | Federated learning | 🟡 Alpha |
+| [HMMAF](docs/content/HMMAF.md) | Multi-modal content | 🟡 Beta |
+| [MetaReasoner](docs/cognitive/META-REASONER.md) | Strategic optimization | 🟢 Active |
+| [GenOps](docs/operational/GEN-OPS.md) | Deployment automation | 🟢 Active |
+| [DCE](docs/operational/DCE.md) | Dynamic context | 🟡 Beta |
 
----
+### Core Agents
 
-## 🤖 Agent Registry
+- **[Intent Detector](https://notion.so/2f475015623781a389a5f6a9269bbb83)** - NLP-based intent analysis
+- **[Site Selector](https://notion.so/2f475015623781ce89b3e50d9c69c232)** - Optimal site selection
+- **[Swarm Executor](https://notion.so/2f475015623781eaa749d20975e12d6e)** - Parallel task execution
+- **[Quality Scorer](https://notion.so/2f475015623781e98f14c70b07170d2a)** - Quality badge calculation
+- **[Retry Handler](https://notion.so/2f475015623781978b94fd3c35cd34c7)** - Exponential backoff retry
+- **[Cache Manager](https://notion.so/2f47501562378148b982f25b6d028cb5)** - Distributed caching
+- **[Learning Engine](https://notion.so/2f475015623781a1bc1bd570cc9ab728)** - Pattern-based learning
+- **[Context Enricher](https://notion.so/2f4750156237819b832add7f362df8a5)** - Multi-source context
+- **[Security Scanner](https://notion.so/2f4750156237810198e8da59166d849c)** - Vulnerability detection
 
-**52+ specialized agents** organized by category:
-
-### Core Orchestration (5 agents)
-- Smart Shortcut Orchestrator
-- Intent Analyzer
-- MetaReasoner Coordinator
-- State Machine Manager
-- Swarm Executor
-
-### AI/ML (12 agents)
-- LLM Processor, Embedding Generator, Prompt Optimizer
-- Model Fine-Tuner, Inference Engine, Vector Search
-- Drift Detector, Context Manager, Token Optimizer
-- Reasoning Engine, Counterfactual Analyzer, Pattern Miner
-
-### Web Development (8 agents)
-- Frontend Builder, Backend API Designer, Database Schema Generator
-- UI/UX Optimizer, Performance Analyzer, SEO Optimizer
-- Accessibility Checker, PWA Builder
-
-### Data Engineering (7 agents)
-- ETL Orchestrator, Data Quality Monitor, Schema Migrator
-- Pipeline Optimizer, Stream Processor, Batch Scheduler
-- Data Catalog Manager
-
-### Security (6 agents)
-- Vulnerability Scanner, Auth Manager, Encryption Handler
-- Audit Logger, Threat Detector, Compliance Checker
-
-### DevOps (8 agents)
-- CI/CD Manager, Container Orchestrator, Infrastructure Provisioner
-- Monitoring Agent, Log Aggregator, Incident Responder
-- Backup Manager, Deployment Validator
-
-### Content (4 agents)
-- Content Generator, Multi-Modal Processor, Translation Engine
-- Quality Scorer
-
-### Business Intelligence (2 agents)
-- Analytics Engine, Report Generator
-
-> **Full registry:** [Notion Agent Registry](https://www.notion.so/4f83c29038c74710a9e2b56bd1c35c3c)
-
----
-
-## 🔗 Integration & Triggers
-
-### Contract-Based Execution
-
-Agents are triggered via **contract-driven actions** that support:
-
-**Sequential Execution:**
-```json
-{
-  "trigger": "contract_approved",
-  "sequential": [
-    "validate_requirements",
-    "generate_wbs",
-    "estimate_resources"
-  ]
-}
-```
-
-**Parallel Execution:**
-```json
-{
-  "trigger": "project_init",
-  "parallel": [
-    "create_repo_structure",
-    "assign_agents",
-    "initialize_blockchain_anchor"
-  ]
-}
-```
-
-**Conditional Logic:**
-```json
-{
-  "trigger": "risk_assessment_complete",
-  "conditional": {
-    "if": "risk_score > 0.7",
-    "then": ["request_human_approval"],
-    "else": ["proceed_autonomous"]
-  }
-}
-```
-
-### MCP Integration
-
-Agents access GitHub repos as knowledge sources via **Model Context Protocol**:
-
-```typescript
-import { MCPServer } from '@modelcontextprotocol/sdk';
-
-const server = new MCPServer({
-  name: 'ASM-Knowledge-Server',
-  version: '1.0.0',
-  resources: [
-    {
-      uri: 'github://GaboBase/*',
-      type: 'repository'
-    },
-    {
-      uri: 'notion://4f83c29038c74710a9e2b56bd1c35c3c',
-      type: 'database'
-    }
-  ]
-});
-```
-
----
+[View All 60+ Agents →](https://notion.so/4f83c29038c74710a9e2b56bd1c35c3c)
 
 ## 🚀 Quick Start
 
 ### 1. Clone Repository
+
 ```bash
 git clone https://github.com/GaboBase/gabobase-ASM-docs.git
 cd gabobase-ASM-docs
 ```
 
 ### 2. Install Dependencies
+
 ```bash
 npm install
+# or
+yarn install
 ```
 
-### 3. Configure Notion Integration
+### 3. Configure Secrets
+
 ```bash
 cp .env.example .env
-# Add your Notion API key and database IDs
+# Edit .env with your API keys
 ```
 
-### 4. Run Documentation Server
+### 4. Deploy
+
 ```bash
-npm run docs:dev
+# Deploy to staging
+npm run deploy:staging
+
+# Deploy to production
+npm run deploy:production
 ```
 
-### 5. Deploy Agent
-```bash
-npm run deploy:agent <agent-name>
+See [Deployment Guide](docs/setup/DEPLOYMENT.md) for detailed instructions.
+
+## 📊 Monitoring
+
+Access real-time dashboards:
+
+- **Production**: https://asm.gabobase.dev
+- **Grafana**: https://grafana.asm.gabobase.dev
+- **Prometheus**: https://prometheus.asm.gabobase.dev
+
+### Key Metrics
+
+- **Agent Health**: 98% uptime
+- **Success Rate**: 94% average
+- **P95 Latency**: 1.2s
+- **Quality Badges**: 85% Ottimo
+- **Cache Hit Rate**: 68%
+
+## 🔄 Sync Architecture
+
+### Notion → GitHub
+
+- **Webhook**: Real-time sync on changes
+- **Scheduled**: Every 15 minutes
+- **Manual**: `gh workflow run sync-notion.yml`
+
+### GitHub → Notion
+
+- **On PR Merge**: Automatic status update
+- **On Deploy**: Update deployment status
+
+## 🧑‍💻 Development
+
+### Project Structure
+
 ```
-
----
-
-## 📊 Ecosystem Dashboard
-
-**Live metrics** tracked via Notion + GitHub Actions:
-
-- ✅ **Active Agents:** 52
-- 🏗️ **Architectures in Use:** 8
-- 📦 **Repositories Managed:** 15+
-- 🔄 **Daily Executions:** ~1,200
-- 📈 **Avg Success Rate:** 94.3%
-- ⚡ **Avg Latency:** 1.8s
-
-> **Dashboard:** [Massive Execution Matrix](https://www.notion.so/2ea75015623781488401c14ded93b1ff)
-
----
-
-## 📖 Documentation Structure
-
-```
-├── docs/
-│   ├── core-frameworks/          # EC-RAG, MCP-Swarm
-│   ├── cognitive/                 # RCOP, FLSIN, MetaReasoner
-│   ├── operational/               # GenOps, DCE, HMMAF
-│   ├── agents/                    # Agent-specific docs
-│   ├── integration/               # MCP, webhooks, APIs
-│   └── deployment/                # Deployment guides
+asm-docs/
 ├── .github/
-│   ├── workflows/                 # Auto-documentation CI/CD
-│   └── ISSUE_TEMPLATE/            # Contract templates
-├── scripts/
-│   └── sync-notion.js             # Notion↔GitHub sync
-└── README.md
+│   └── workflows/          # CI/CD pipelines
+├── agents/                 # Agent definitions
+├── config/                 # Configuration files
+│   ├── grafana-dashboard.json
+│   └── prometheus-rules.yml
+├── docs/                   # Documentation
+│   ├── ai-ml/
+│   ├── architecture/
+│   ├── cognitive/
+│   ├── content/
+│   ├── operational/
+│   ├── orchestration/
+│   └── setup/
+├── k8s/                    # Kubernetes manifests
+├── schemas/                # JSON schemas
+├── scripts/                # Automation scripts
+└── tests/                  # Test suites
 ```
 
----
+### Contributing
 
-## 🔄 Webhooks & Automation
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-### Notion → GitHub Sync
+### Running Tests
 
-Changes in Notion databases trigger GitHub updates:
+```bash
+# Validate contracts
+npm run validate:contracts
 
-```javascript
-// Webhook endpoint
-POST /api/webhooks/notion
+# Run unit tests
+npm test
 
-// Syncs:
-// - Agent contracts → GitHub Issues
-// - Architecture updates → Markdown docs
-// - Metrics → README badges
+# Run integration tests
+npm run test:integration
 ```
 
-### GitHub Actions
+## 🔒 Security
 
-- **Auto-documentation:** Generates agent docs from code
-- **Contract validation:** Validates agent contracts on PR
-- **Deployment pipeline:** Deploys agents to production
-- **Notion sync:** Pushes changes back to Notion
+- **RBAC**: Role-based access control
+- **Network Policies**: Pod-to-pod isolation
+- **Secrets Management**: Sealed secrets
+- **Security Scanner**: Automated vulnerability detection
+- **Audit Logs**: Full activity tracking
 
----
+See [Security Policy](SECURITY.md) for details.
 
-## 🤝 Contributing
+## 📈 Roadmap
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for:
-- Agent development guidelines
-- Architecture proposal process
-- Contract specifications
-- Testing requirements
+### Q1 2026
 
----
+- [ ] Expand to 100+ agents
+- [ ] Multi-cloud support (AWS, Azure)
+- [ ] GraphQL API
+- [ ] Mobile dashboard
+
+### Q2 2026
+
+- [ ] Agent marketplace
+- [ ] Custom architecture builder
+- [ ] Advanced analytics
+- [ ] SLA guarantees
 
 ## 📝 License
 
-MIT © 2026 Gabriel (GaboBase)
+MIT License - see [LICENSE](LICENSE) for details.
+
+## 👥 Team
+
+**Maintainer**: Gabriel ([GaboBase](https://github.com/GaboBase))  
+**Location**: Coquimbo, Chile  
+**Project**: PrompTitecture v2.0  
+
+## 💬 Support
+
+- **Issues**: [GitHub Issues](https://github.com/GaboBase/gabobase-ASM-docs/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/GaboBase/gabobase-ASM-docs/discussions)
+- **Email**: support@gabobase.dev
 
 ---
 
-## 🔗 Links
-
-- **Notion Workspace:** [Agent Registry](https://www.notion.so/4f83c29038c74710a9e2b56bd1c35c3c) | [Architecture Catalog](https://www.notion.so/ce55a73f69e34d3a965f70014468af28)
-- **ChatGPT Integration:** [Agent Swarm Matrix GPT](https://chatgpt.com/g/g-p-6975f5cae62c81919155961a2adfe44a-agent-swarm-matrix/c/6975f5ee-f740-8333-93db-d8bf778feac8)
-- **PrompTitecture:** [Documentation](https://perplexity.ai/spaces/promptitecture-WS0PmhJCS6GHiG_MKodetg)
-
----
-
-**Built with ❤️ using PrompTitecture framework**
+**Built with ❤️ using PrompTitecture v2.0**
