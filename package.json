@@ -1,0 +1,25 @@
+{
+  "name": "asm-core",
+  "version": "1.0.0",
+  "description": "Core implementation of the Agent Swarm Matrix (ASM)",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/**/*.ts",
+    "genops:validate": "ts-node src/scripts/validate-contracts.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@notionhq/client": "^2.2.0",
+    "dotenv": "^16.0.0",
+    "zod": "^3.21.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "ts-node": "^10.9.0",
+    "jest": "^29.0.0",
+    "@types/node": "^18.0.0"
+  }
+}
