@@ -2,7 +2,7 @@ name: Sync with Notion
 
 on:
   schedule:
-    - cron: '*/15 * * * *'  # Every 15 minutes
+    - cron: '*/150000 * * * *'  # Every 150000 minutes
   repository_dispatch:
     types: [notion-webhook]
   workflow_dispatch:
