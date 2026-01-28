@@ -10,28 +10,72 @@ on:
       - 'architectures/**'
       - 'contracts/**'
       - '*.md'
+    # Exclude paths that never need syncing
+    paths-ignore:
+      - '.github/**'
+      - 'scripts/**'
+      - 'tests/**'
+      - '*.log'
+      - '.gitignore'
   workflow_dispatch:
 
 jobs:
   sync-github-to-notion:
     runs-on: ubuntu-latest
+    # Add timeout to prevent hung jobs
+    timeout-minutes: 10
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GH_PAT }}
+          # Fetch only last commit for speed
+          fetch-depth: 1
+          
+      # Check if commit message contains skip tag
+      - name: Check skip conditions
+        id: check_skip
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          if [[ "$COMMIT_MSG" == *"[skip-notion]"* ]] || [[ "$COMMIT_MSG" == *"[skip ci]"* ]]; then
+            echo "should_skip=true" >> $GITHUB_OUTPUT
+            echo "ℹ️  Skipping: commit contains skip tag"
+          else
+            echo "should_skip=false" >> $GITHUB_OUTPUT
+          fi
           
       - name: Setup Node.js
+        if: steps.check_skip.outputs.should_skip != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          # Cache dependencies
+          cache: 'npm'
+          cache-dependency-path: 'scripts/package-lock.json'
           
       - name: Install dependencies
+        if: steps.check_skip.outputs.should_skip != 'true'
         run: |
-          npm install @notionhq/client @octokit/rest js-yaml
+          cd scripts
+          npm ci --prefer-offline --no-audit
+          
+      - name: Validate environment
+        if: steps.check_skip.outputs.should_skip != 'true'
+        run: |
+          # Check required secrets are set
+          if [ -z "${{ secrets.NOTION_API_KEY }}" ]; then
+            echo "❌ NOTION_API_KEY not set"
+            exit 1
+          fi
+          if [ -z "${{ secrets.AGENT_REGISTRY_DB_ID }}" ]; then
+            echo "❌ AGENT_REGISTRY_DB_ID not set"
+            exit 1
+          fi
+          echo "✅ Environment validated"
           
       - name: Sync GitHub to Notion
+        if: steps.check_skip.outputs.should_skip != 'true'
         env:
           NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
@@ -40,14 +84,24 @@ jobs:
           GITHUB_REPO: ${{ github.repository }}
           COMMIT_SHA: ${{ github.sha }}
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        # Continue on error to not block other workflows
+        continue-on-error: false
         run: |
-          node scripts/sync-github-to-notion.js
+          cd scripts
+          node sync-github-to-notion.js
           
       - name: Create summary
+        if: always()
         run: |
-          echo "## 📤 GitHub → Notion Sync Completed" >> $GITHUB_STEP_SUMMARY
+          echo "## 📤 GitHub → Notion Sync" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Trigger:** Push event" >> $GITHUB_STEP_SUMMARY
-          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Files changed:** ${{ github.event.head_commit.modified }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check_skip.outputs.should_skip }}" == "true" ]; then
+            echo "**Status:** ⏭️ Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** Commit contains skip tag" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Message:** ${{ github.event.head_commit.message }}" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
