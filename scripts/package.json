@@ -1,0 +1,27 @@
+{
+  "name": "gabobase-asm-sync-scripts",
+  "version": "1.0.0",
+  "description": "Synchronization scripts for GitHub, Notion, and Website",
+  "private": true,
+  "scripts": {
+    "sync:github-notion": "node sync-github-to-notion.js",
+    "sync:github-website": "node sync-github-to-website.js",
+    "sync:notion-website": "node sync-notion-to-website.js",
+    "test": "echo \"No tests yet\""
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.2.15",
+    "@octokit/rest": "^20.0.2",
+    "js-yaml": "^4.1.0",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GaboBase/gabobase-ASM-docs"
+  },
+  "author": "Gabriel (GaboBase)",
+  "license": "MIT"
+}
