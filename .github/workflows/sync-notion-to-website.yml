@@ -1,9 +1,11 @@
 name: Sync Notion to Website
 
 on:
-  schedule:
-    - cron: '0 0 2/3 * *'  # Every 3 days starting from day 3 at midnight UTC (Day 3 of cycle)
-  workatch:
+  repository_dispatch:
+    types: 
+      - notion-webhook
+      - notion-update
+  workflow_dispatch:
 
 jobs:
   sync-notion-to-website:
@@ -22,7 +24,7 @@ jobs:
           
       - name: Install dependencies
         run: |
-          npm install @notionhq/client nodeh js-yaml
+          npm install @notionhq/client node-fetch js-yaml
           
       - name: Sync Notion to Website
         env:
@@ -31,12 +33,17 @@ jobs:
           WEBSITE_API_URL: ${{ secrets.WEBSITE_API_URL }}
           AGENT_REGISTRY_ID: ${{ secrets.AGENT_REGISTRY_DB_ID }}
           ARCHITECTURE_CATALOG_ID: ${{ secrets.ARCHITECTURE_CATALOG_DB_ID }}
+          NOTION_PAGE_ID: ${{ github.event.client_payload.page_id }}
+          NOTION_DATABASE_ID: ${{ github.event.client_payload.database_id }}
+          WEBHOOK_ACTION: ${{ github.event.client_payload.action }}
         run: |
           node scripts/sync-notion-to-website.js
           
       - name: Create summary
-        run: |         echo "## 🌐 Notion → Website Sync Completed" >> $GITHUB_STEP_SUMMARY
+        run: |
+          echo "## 🌐 Notion → Website Sync Completed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Cycle Day:** 3 of 3" >> $GITHUB_STEP_SUMMARY
-          echo "**Next sync:** GitHub → Notion (in 24 hours - new cycle begins)" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** Notion webhook (${{ github.event.action }})" >> $GITHUB_STEP_SUMMARY
+          echo "**Page ID:** ${{ github.event.client_payload.page_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Action:** ${{ github.event.client_payload.action }}" >> $GITHUB_STEP_SUMMARY
           echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
