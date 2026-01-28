@@ -1,8 +1,17 @@
 name: Sync GitHub to Website
 
 on:
-  schedule:
-    - cron: '0 0 1/3 * *'  # Every 3 days starting from day 2 at midnight UTC (Day 2 of cycle)
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'agents/**'
+      - 'architectures/**'
+      - 'public/**'
+      - '*.md'
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -30,6 +39,8 @@ jobs:
           WEBSITE_API_KEY: ${{ secrets.WEBSITE_API_KEY }}
           WEBSITE_API_URL: ${{ secrets.WEBSITE_API_URL }}
           GITHUB_REPO: ${{ github.repository }}
+          COMMIT_SHA: ${{ github.sha }}
+          EVENT_TYPE: ${{ github.event_name }}
         run: |
           node scripts/sync-github-to-website.js
           
@@ -37,6 +48,7 @@ jobs:
         run: |
           echo "## 🔀 GitHub → Website Sync Completed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Cycle Day:** 2 of 3" >> $GITHUB_STEP_SUMMARY
-          echo "**Next sync:** Notion → Website (in 24 hours)" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
