@@ -1,229 +1,354 @@
-#!/usr/bin/env node
-
 /**
  * GitHub to Notion Sync Script
- * Syncs repository changes to Notion databases
+ * 
+ * Sincroniza cambios de GitHub (commits, archivos) hacia Notion
  */
 
 const { Client } = require('@notionhq/client');
 const { Octokit } = require('@octokit/rest');
 const yaml = require('js-yaml');
-const fs = require('fs');
+const fs = require('fs').promises;
 const path = require('path');
 
-// Configuration
+// Configuración
+const notion = new Client({ auth: process.env.NOTION_API_KEY });
+const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+
 const config = {
-  notionApiKey: process.env.NOTION_API_KEY,
-  githubToken: process.env.GITHUB_TOKEN,
-  agentRegistryId: process.env.AGENT_REGISTRY_ID,
-  architectureCatalogId: process.env.ARCHITECTURE_CATALOG_ID,
   githubRepo: process.env.GITHUB_REPO,
   commitSha: process.env.COMMIT_SHA,
-  commitMessage: process.env.COMMIT_MESSAGE
+  commitMessage: process.env.COMMIT_MESSAGE,
+  databases: {
+    agents: process.env.AGENT_REGISTRY_ID,
+    architectures: process.env.ARCHITECTURE_CATALOG_ID
+  }
 };
 
-// Validate required environment variables
-function validateConfig() {
-  const required = ['notionApiKey', 'githubToken', 'agentRegistryId', 'githubRepo'];
-  const missing = required.filter(key => !config[key]);
+/**
+ * Obtiene archivos modificados en el commit
+ */
+async function getModifiedFiles() {
+  const [owner, repo] = config.githubRepo.split('/');
   
-  if (missing.length > 0) {
-    console.error('❌ Missing required environment variables:', missing.join(', '));
-    process.exit(1);
-  }
-  
-  console.log('✅ Configuration validated');
-}
-
-// Initialize clients
-const notion = new Client({ auth: config.notionApiKey });
-const octokit = new Octokit({ auth: config.githubToken });
-
-const [owner, repo] = config.githubRepo.split('/');
-
-// Rate limiting helper
-class RateLimiter {
-  constructor(maxRequests, timeWindow) {
-    this.maxRequests = maxRequests;
-    this.timeWindow = timeWindow;
-    this.requests = [];
-  }
-  
-  async waitIfNeeded() {
-    const now = Date.now();
-    this.requests = this.requests.filter(time => now - time < this.timeWindow);
-    
-    if (this.requests.length >= this.maxRequests) {
-      const oldestRequest = this.requests[0];
-      const waitTime = this.timeWindow - (now - oldestRequest);
-      console.log(`⏳ Rate limit reached, waiting ${waitTime}ms`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
-      this.requests.shift();
-    }
-    
-    this.requests.push(now);
-  }
-}
-
-const notionRateLimiter = new RateLimiter(3, 1000); // 3 requests per second
-
-// Retry logic for API calls
-async function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      return await fn();
-    } catch (error) {
-      if (i === maxRetries - 1) throw error;
-      
-      const delay = baseDelay * Math.pow(2, i);
-      console.log(`⚠️  Retry ${i + 1}/${maxRetries} after ${delay}ms: ${error.message}`);
-      await new Promise(resolve => setTimeout(resolve, delay));
-    }
-  }
-}
-
-// Check if files changed are relevant
-async function getChangedFiles() {
   try {
     const { data: commit } = await octokit.repos.getCommit({
       owner,
       repo,
       ref: config.commitSha
     });
-    
-    const relevantPaths = ['docs/', 'agents/', 'architectures/', 'contracts/'];
-    const changedFiles = commit.files.filter(file => 
-      relevantPaths.some(path => file.filename.startsWith(path)) ||
-      file.filename.endsWith('.md')
-    );
-    
-    console.log(`📄 Found ${changedFiles.length} relevant changed files`);
-    return changedFiles;
+
+    return commit.files.map(file => ({
+      filename: file.filename,
+      status: file.status,
+      additions: file.additions,
+      deletions: file.deletions,
+      patch: file.patch
+    }));
   } catch (error) {
-    console.error('❌ Error fetching changed files:', error.message);
+    console.error('❌ Error obteniendo archivos modificados:', error.message);
     return [];
   }
 }
 
-// Early exit if no relevant changes
-async function shouldSync() {
-  const changedFiles = await getChangedFiles();
-  
-  if (changedFiles.length === 0) {
-    console.log('ℹ️  No relevant files changed, skipping sync');
-    return false;
-  }
-  
-  // Skip if commit message contains [skip-notion]
-  if (config.commitMessage && config.commitMessage.includes('[skip-notion]')) {
-    console.log('ℹ️  Commit contains [skip-notion], skipping sync');
-    return false;
-  }
-  
-  return true;
-}
+/**
+ * Procesa archivos YAML de agentes
+ */
+async function syncAgentFiles(files) {
+  const agentFiles = files.filter(f => 
+    f.filename.startsWith('agents/') && f.filename.endsWith('.yaml')
+  );
 
-// Sync agents to Notion
-async function syncAgents(changedFiles) {
-  const agentFiles = changedFiles.filter(f => f.filename.startsWith('agents/'));
-  if (agentFiles.length === 0) return;
-  
-  console.log(`🤖 Syncing ${agentFiles.length} agent files...`);
-  
+  console.log(`🤖 Sincronizando ${agentFiles.length} archivos de agentes...`);
+
   for (const file of agentFiles) {
     try {
-      await notionRateLimiter.waitIfNeeded();
-      
-      // Parse agent file
-      const { data: fileContent } = await octokit.repos.getContent({
-        owner,
-        repo,
-        path: file.filename,
-        ref: config.commitSha
-      });
-      
-      const content = Buffer.from(fileContent.content, 'base64').toString('utf-8');
-      const agent = yaml.load(content);
-      
-      // Search for existing page
-      const searchResult = await retryWithBackoff(() => 
-        notion.databases.query({
-          database_id: config.agentRegistryId,
-          filter: {
-            property: 'Name',
-            title: { equals: agent.name || path.basename(file.filename, '.yml') }
-          }
-        })
-      );
-      
-      const pageData = {
-        properties: {
-          Name: { title: [{ text: { content: agent.name || path.basename(file.filename, '.yml') } }] },
-          Type: { select: { name: agent.type || 'Unknown' } },
-          Status: { select: { name: 'Active' } },
-          'GitHub Path': { url: `https://github.com/${config.githubRepo}/blob/main/${file.filename}` }
-        }
-      };
-      
-      if (searchResult.results.length > 0) {
-        // Update existing
-        await retryWithBackoff(() => 
-          notion.pages.update({
-            page_id: searchResult.results[0].id,
-            ...pageData
-          })
-        );
-        console.log(`  ✅ Updated: ${agent.name}`);
+      if (file.status === 'removed') {
+        await deleteAgentFromNotion(file.filename);
       } else {
-        // Create new
-        await retryWithBackoff(() => 
-          notion.pages.create({
-            parent: { database_id: config.agentRegistryId },
-            ...pageData
-          })
-        );
-        console.log(`  ✅ Created: ${agent.name}`);
+        const content = await getFileContent(file.filename);
+        const agentData = yaml.load(content);
+        await upsertAgentToNotion(agentData, file.filename);
       }
     } catch (error) {
-      console.error(`  ❌ Error syncing ${file.filename}:`, error.message);
-      // Continue with other files instead of failing completely
+      console.error(`❌ Error procesando ${file.filename}:`, error.message);
     }
   }
 }
 
-// Main sync function
-async function main() {
-  console.log('🚀 Starting GitHub to Notion sync...');
-  console.log(`📦 Repository: ${config.githubRepo}`);
-  console.log(`📝 Commit: ${config.commitSha}`);
-  
-  validateConfig();
-  
-  const shouldProceed = await shouldSync();
-  if (!shouldProceed) {
-    console.log('✅ Sync completed (no changes needed)');
-    process.exit(0);
-  }
-  
-  const changedFiles = await getChangedFiles();
-  
-  try {
-    await syncAgents(changedFiles);
-    // Add more sync functions here (syncArchitectures, syncDocs, etc.)
-    
-    console.log('\n✅ Sync completed successfully');
-  } catch (error) {
-    console.error('\n❌ Sync failed:', error.message);
-    process.exit(1);
+/**
+ * Procesa archivos de arquitecturas
+ */
+async function syncArchitectureFiles(files) {
+  const archFiles = files.filter(f => 
+    f.filename.startsWith('architectures/') && f.filename.endsWith('.md')
+  );
+
+  console.log(`🏛️ Sincronizando ${archFiles.length} archivos de arquitecturas...`);
+
+  for (const file of archFiles) {
+    try {
+      if (file.status === 'removed') {
+        await deleteArchitectureFromNotion(file.filename);
+      } else {
+        const content = await getFileContent(file.filename);
+        await upsertArchitectureToNotion(content, file.filename);
+      }
+    } catch (error) {
+      console.error(`❌ Error procesando ${file.filename}:`, error.message);
+    }
   }
 }
 
-// Run if called directly
+/**
+ * Obtiene contenido de archivo desde GitHub
+ */
+async function getFileContent(filepath) {
+  const [owner, repo] = config.githubRepo.split('/');
+  
+  try {
+    const { data } = await octokit.repos.getContent({
+      owner,
+      repo,
+      path: filepath,
+      ref: config.commitSha
+    });
+
+    return Buffer.from(data.content, 'base64').toString('utf-8');
+  } catch (error) {
+    console.error(`❌ Error obteniendo ${filepath}:`, error.message);
+    throw error;
+  }
+}
+
+/**
+ * Crea o actualiza agente en Notion
+ */
+async function upsertAgentToNotion(agentData, filepath) {
+  const agentName = agentData.metadata?.name || path.basename(filepath, '.yaml');
+  
+  // Buscar si ya existe
+  const existing = await findNotionPageByTitle(config.databases.agents, agentName);
+
+  const properties = {
+    'Name': {
+      title: [
+        {
+          text: {
+            content: agentName
+          }
+        }
+      ]
+    },
+    'Type': {
+      select: {
+        name: agentData.metadata?.type || 'generic'
+      }
+    },
+    'Status': {
+      select: {
+        name: agentData.metadata?.status || 'active'
+      }
+    },
+    'GitHub Path': {
+      rich_text: [
+        {
+          text: {
+            content: filepath
+          }
+        }
+      ]
+    },
+    'Last Sync': {
+      date: {
+        start: new Date().toISOString()
+      }
+    }
+  };
+
+  if (existing) {
+    console.log(`♻️  Actualizando agente: ${agentName}`);
+    await notion.pages.update({
+      page_id: existing.id,
+      properties
+    });
+  } else {
+    console.log(`✨ Creando agente: ${agentName}`);
+    await notion.pages.create({
+      parent: { database_id: config.databases.agents },
+      properties
+    });
+  }
+}
+
+/**
+ * Crea o actualiza arquitectura en Notion
+ */
+async function upsertArchitectureToNotion(content, filepath) {
+  const archName = path.basename(filepath, '.md');
+  
+  const existing = await findNotionPageByTitle(config.databases.architectures, archName);
+
+  const properties = {
+    'Name': {
+      title: [
+        {
+          text: {
+            content: archName
+          }
+        }
+      ]
+    },
+    'GitHub Path': {
+      rich_text: [
+        {
+          text: {
+            content: filepath
+          }
+        }
+      ]
+    },
+    'Last Sync': {
+      date: {
+        start: new Date().toISOString()
+      }
+    }
+  };
+
+  // Convertir markdown a bloques de Notion
+  const children = convertMarkdownToNotionBlocks(content);
+
+  if (existing) {
+    console.log(`♻️  Actualizando arquitectura: ${archName}`);
+    await notion.pages.update({
+      page_id: existing.id,
+      properties
+    });
+    // Nota: Para actualizar contenido, necesitarías borrar y recrear bloques
+  } else {
+    console.log(`✨ Creando arquitectura: ${archName}`);
+    await notion.pages.create({
+      parent: { database_id: config.databases.architectures },
+      properties,
+      children: children.slice(0, 100) // Notion API limit
+    });
+  }
+}
+
+/**
+ * Busca página en Notion por título
+ */
+async function findNotionPageByTitle(databaseId, title) {
+  const response = await notion.databases.query({
+    database_id: databaseId,
+    filter: {
+      property: 'Name',
+      title: {
+        equals: title
+      }
+    }
+  });
+
+  return response.results[0] || null;
+}
+
+/**
+ * Convierte Markdown simple a bloques de Notion
+ */
+function convertMarkdownToNotionBlocks(markdown) {
+  const lines = markdown.split('\n');
+  const blocks = [];
+
+  for (const line of lines) {
+    if (line.startsWith('# ')) {
+      blocks.push({
+        object: 'block',
+        type: 'heading_1',
+        heading_1: {
+          rich_text: [{ text: { content: line.substring(2) } }]
+        }
+      });
+    } else if (line.startsWith('## ')) {
+      blocks.push({
+        object: 'block',
+        type: 'heading_2',
+        heading_2: {
+          rich_text: [{ text: { content: line.substring(3) } }]
+        }
+      });
+    } else if (line.trim()) {
+      blocks.push({
+        object: 'block',
+        type: 'paragraph',
+        paragraph: {
+          rich_text: [{ text: { content: line } }]
+        }
+      });
+    }
+  }
+
+  return blocks;
+}
+
+/**
+ * Elimina agente de Notion
+ */
+async function deleteAgentFromNotion(filepath) {
+  const agentName = path.basename(filepath, '.yaml');
+  const existing = await findNotionPageByTitle(config.databases.agents, agentName);
+  
+  if (existing) {
+    console.log(`🗑️  Archivando agente: ${agentName}`);
+    await notion.pages.update({
+      page_id: existing.id,
+      archived: true
+    });
+  }
+}
+
+/**
+ * Elimina arquitectura de Notion
+ */
+async function deleteArchitectureFromNotion(filepath) {
+  const archName = path.basename(filepath, '.md');
+  const existing = await findNotionPageByTitle(config.databases.architectures, archName);
+  
+  if (existing) {
+    console.log(`🗑️  Archivando arquitectura: ${archName}`);
+    await notion.pages.update({
+      page_id: existing.id,
+      archived: true
+    });
+  }
+}
+
+/**
+ * Main
+ */
+async function main() {
+  console.log('🚀 Iniciando sincronización GitHub → Notion');
+  console.log(`📋 Commit: ${config.commitSha}`);
+  console.log(`💬 Mensaje: ${config.commitMessage}\n`);
+
+  const modifiedFiles = await getModifiedFiles();
+  console.log(`📄 ${modifiedFiles.length} archivos modificados detectados\n`);
+
+  await syncAgentFiles(modifiedFiles);
+  await syncArchitectureFiles(modifiedFiles);
+
+  console.log('\n✅ Sincronización completada exitosamente');
+}
+
+// Ejecutar
 if (require.main === module) {
   main().catch(error => {
-    console.error('Fatal error:', error);
+    console.error('❌ Error fatal:', error);
     process.exit(1);
   });
 }
 
-module.exports = { main };
+module.exports = { 
+  syncAgentFiles, 
+  syncArchitectureFiles,
+  upsertAgentToNotion,
+  upsertArchitectureToNotion
+};
