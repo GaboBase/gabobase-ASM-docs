@@ -1,0 +1,42 @@
+name: Sync Notion to Website
+
+on:
+  schedule:
+    - cron: '0 0 2/3 * *'  # Every 3 days starting from day 3 at midnight UTC (Day 3 of cycle)
+  workatch:
+
+jobs:
+  sync-notion-to-website:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT }}
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        run: |
+          npm install @notionhq/client nodeh js-yaml
+          
+      - name: Sync Notion to Website
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          WEBSITE_API_KEY: ${{ secrets.WEBSITE_API_KEY }}
+          WEBSITE_API_URL: ${{ secrets.WEBSITE_API_URL }}
+          AGENT_REGISTRY_ID: ${{ secrets.AGENT_REGISTRY_DB_ID }}
+          ARCHITECTURE_CATALOG_ID: ${{ secrets.ARCHITECTURE_CATALOG_DB_ID }}
+        run: |
+          node scripts/sync-notion-to-website.js
+          
+      - name: Create summary
+        run: |         echo "## 🌐 Notion → Website Sync Completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Cycle Day:** 3 of 3" >> $GITHUB_STEP_SUMMARY
+          echo "**Next sync:** GitHub → Notion (in 24 hours - new cycle begins)" >> $GITHUB_STEP_SUMMARY
+          echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
