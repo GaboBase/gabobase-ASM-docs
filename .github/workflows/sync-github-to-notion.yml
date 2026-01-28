@@ -1,8 +1,15 @@
 name: Sync GitHub to Notion
 
 on:
-  schedule:
-    - cron: '0 0 */3 * *'  # Every 3 days at midnight UTC (Day 1 of cycle)
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+      - 'agents/**'
+      - 'architectures/**'
+      - 'contracts/**'
+      - '*.md'
   workflow_dispatch:
 
 jobs:
@@ -31,6 +38,8 @@ jobs:
           AGENT_REGISTRY_ID: ${{ secrets.AGENT_REGISTRY_DB_ID }}
           ARCHITECTURE_CATALOG_ID: ${{ secrets.ARCHITECTURE_CATALOG_DB_ID }}
           GITHUB_REPO: ${{ github.repository }}
+          COMMIT_SHA: ${{ github.sha }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           node scripts/sync-github-to-notion.js
           
@@ -38,6 +47,7 @@ jobs:
         run: |
           echo "## 📤 GitHub → Notion Sync Completed" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Cycle Day:** 1 of 3" >> $GITHUB_STEP_SUMMARY
-          echo "**Next sync:** GitHub → Website (in 24 hours)" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** Push event" >> $GITHUB_STEP_SUMMARY
+          echo "**Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Files changed:** ${{ github.event.head_commit.modified }}" >> $GITHUB_STEP_SUMMARY
           echo "**Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
